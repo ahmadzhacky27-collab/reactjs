@@ -10,7 +10,11 @@ export default function AppNavbar() {
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="me-auto">
                         <Nav.Link href="/dashboard">Home</Nav.Link>
-                        <Nav.Link href="#link">Link</Nav.Link>
+                        <Nav.Link href="/category">Category</Nav.Link>
+                        <Nav.Link href="/product">Product</Nav.Link>
+                        {/* <Nav.Link href="#link">Link</Nav.Link> */}
+                    </Nav>
+                    <Nav className="align-items-center gap-2">
                         <NavDropdown title="Dropdown" id="basic-nav-dropdown">
                             <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
                             <NavDropdown.Item href="#action/3.2">
@@ -22,8 +26,7 @@ export default function AppNavbar() {
                                 Separated link
                             </NavDropdown.Item>
                         </NavDropdown>
-                    </Nav>
-                    <Nav className="align-items-center gap-2">
+
                         <Navbar.Text className="text-secondary me-2">Admin</Navbar.Text>
                         <Button variant="outline-danger" size="sm">
                             Logout
