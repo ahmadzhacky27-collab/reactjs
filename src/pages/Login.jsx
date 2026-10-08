@@ -5,6 +5,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Button } from "../../components/ui/button";
+import { AlertCircleIcon } from "lucide-react"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+
 
 export default function Login() {
   const navigate = useNavigate();
@@ -15,10 +18,11 @@ export default function Login() {
 
   const [formData, setFormData] = useState(_initialForm);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleChange = (e) => {
     // prev : params
-    console.log(`Input change  ${e.target.name} = ${e.target.value}`);
+    // console.log(`Input change  ${e.target.name} = ${e.target.value}`);
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -26,13 +30,34 @@ export default function Login() {
     // setFormData(function(prev){})
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
+
+    try {
+      const res = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.message || "Please check your email and password");
+      }
+      localStorage.setItem("", result.data.token);
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
+    } catch (error) {
+      console.log(error.message);
+      setErrorMsg(error.message);
+
+    } finally {
       setIsLoading(false);
-      navigate("/dashboard");
-    }, 1000);
+    }
   };
 
   return (
@@ -49,6 +74,8 @@ export default function Login() {
             <CardTitle className="text-lg font-semibold">Sign In your Account</CardTitle>
             <CardDescription>Enter your credential</CardDescription>
           </CardHeader>
+
+          {errorMsg && <p className="text-red-900">{errorMsg}</p>}
 
           <form onSubmit={handleLogin}>
             <CardContent className="space-y-4">
