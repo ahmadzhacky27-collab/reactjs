@@ -1,30 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Label } from "../../../components/ui/label";
 import { Input } from "../../../components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import AppModal from "@/components/AppModal";
+import api from "@/services/api";
 
-const dataUsers = [
-    {
-        id: 1,
-        name: "Joko",
-        email: "joko@gmail.com",
-        password: 12345678
-    },
-    {
-        id: 2,
-        name: "Gibran",
-        email: "gibran@gmail.com",
-        password: 12345678
-    },
-    {
-        id: 3,
-        name: "Kaes",
-        email: "kaes@gmail.com",
-        password: 12345678
-    },
-]
+
+// const dataUsers = [
+//     {
+//         id: 1,
+//         name: "Joko",
+//         email: "joko@gmail.com",
+//         password: 12345678
+//     },
+//     {
+//         id: 2,
+//         name: "Gibran",
+//         email: "gibran@gmail.com",
+//         password: 12345678
+//     },
+//     {
+//         id: 3,
+//         name: "Kaes",
+//         email: "kaes@gmail.com",
+//         password: 12345678
+//     },
+// ]
 
 const ListUser = () => {
     const _initForm = {
@@ -32,14 +35,25 @@ const ListUser = () => {
         name: "",
         email: "",
         password: "",
-        status: 'Active'
+        is_active: 1,
     };
 
     const [showModal, setShowModal] = useState(false);
-    const [users, setUsers] = useState(dataUsers);
+    const [users, setUsers] = useState([]);
     const [formData, setFormData] = useState(_initForm);
     const [isEdit, setIsEdit] = useState(false);
     const [isDelete, setIsDelete] = useState(false);
+    const fetchUser = async () => {
+        try {
+            const response = await api.get("/user");
+            setUsers(response.data.data)
+        } catch (error) {
+            console.log(error.message);
+        }
+    };
+    useEffect(() => {
+        fetchUser();
+    }, []);
 
     const handleOpenModal = () => {
         setShowModal(true);
@@ -53,10 +67,11 @@ const ListUser = () => {
         setFormData(user);
     };
 
-    const handleDelete = (id) => {
+    const handleDelete = async (id) => {
         const isConfirm = window.confirm('Are you sure want to delete this data?')
         if (isConfirm) {
-            setUsers(users.filter((u) => u.id !== id));
+            await api.delete(`/user/${id}`);
+            fetchUser();
         }
     };
 
@@ -79,22 +94,38 @@ const ListUser = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        try {
+            const payload = {
+                name: formData.name,
+                email: formData.email,
+                password: formData.password,
+                is_active: parseInt(formData.is_active)
+            }
+            if (isEdit) {
+                // UPDATE
+                await api.put(`/user/${formData.id}`, payload);
+                // setUsers
+                //     (users.map((user) => (user.id === formData.id ? formData : user)));
 
-        if (isEdit) {
-            setUsers
-                (users.map((user) => (user.id === formData.id ? formData : user)));
-        } else {
-            const newUser = {
-                ...formData,
-                id: Date.now(),
-            };
-            setUsers([...users, newUser]);
+            } else {
+                // INSERT
+                await api.post("/user", payload);
+                // const newUser = {
+                //     ...formData,
+                //     id: Date.now(),
+                // };
+                // setUsers([...users, newUser]);
+            }
             setFormData(_initForm);
+        } catch (error) {
+            const errMsg = error.message;
+            console.log(errMsg);
+        } finally {
+            fetchUser();
+            setShowModal(false);
         }
-
-        setShowModal(false);
     };
 
     return (
@@ -125,10 +156,12 @@ const ListUser = () => {
                                     <td className="px-4 py-6 whitespace-nowrap">{index + 1}</td>
                                     <td>{user.name}</td>
                                     <td>{user.email}</td>
-                                    <td className="px-6 whitespace-nowrap">Active</td>
-                                    <td>
-                                        <Button onClick={() => handleEditModal(user)} variant="warning" size="sm" className="me-2">Edit</Button>
-                                        <Button onClick={() => handleDelete(user.id)} variant="danger" size="sm" className="me-2">Delete</Button>
+                                    <td className="px-6 whitespace-nowrap">
+                                        <span className={`border rounded-sm py-1 px-2 ${user.is_active === 1 ? "bg-green-600" : "bg-red-600"} text-white`}>{user.is_active === 1 ? "Active" : "Inactive"}</span>
+                                    </td>
+                                    <td className="px-4 py-6 whitespace-nowrap">
+                                        <Button variant="warning" size="sm" className="me-2 bg-blue-500 text-white rounded-sm" onClick={() => handleEditModal(user)}>Edit</Button>
+                                        <Button variant="destructive" size="sm" className="me-2 bg-red-500 text-white rounded-sm" onClick={() => handleDelete(user.id)}>Delete</Button>
                                     </td>
                                 </tr>
                             ))}
@@ -171,16 +204,39 @@ const ListUser = () => {
                 <div className="space-y-4">
                     <div className="space-y-2">
                         <Label>Name</Label>
-                        <Input id="name" name="name" value={formData.name} onChange={handleChange} required placeholder="Enter your name"></Input>
+                        <Input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required placeholder="Enter your name" />
                     </div>
                     <div className="space-y-2">
                         <Label>Email</Label>
-                        <Input id="email" name="email" value={formData.email} onChange={handleChange} required placeholder="Enter your email"></Input>
+                        <Input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required placeholder="Enter your email" />
                     </div>
                     <div className="space-y-2">
                         <Label>Password</Label>
-                        <Input id="password" name="password" value={formData.password} onChange={handleChange} required placeholder="Enter your password"></Input>
+                        <Input type="password" id="password" name="password" value={formData.password} onChange={handleChange} required={isEdit ? false : true} placeholder="Enter your password" />
                     </div>
+                    {isEdit ? (
+                        <div className="space-y-2">
+                            <Label>Activation</Label>
+                            <RadioGroup
+                                value={String(formData.is_active)}
+                                onValueChange={(val) =>
+                                    setFormData({ ...formData, is_active: parseInt(val) })
+                                }
+                                className="w-fit flex gap-4"
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="1" id="active" />
+                                    <Label htmlFor="active">Active</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="0" id="inactive" />
+                                    <Label htmlFor="inactive">In-Active</Label>
+                                </div>
+                            </RadioGroup>
+                        </div>
+                    ) : (
+                        ""
+                    )}
                 </div>
                 {/* <Form>
                     <Form.Group className="mb-3">
