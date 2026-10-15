@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import ListUser from "./pages/user/List";
 import ListCategory from "./pages/category/category";
 import ListProduct from "./pages/product/product";
+import ListTransaction from './pages/transaction/List';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
           <Route path="/user" element={<ListUser />}></Route>
           <Route path="/category" element={<ListCategory />}></Route>
           <Route path="/product" element={<ListProduct />}></Route>
+          <Route path="/transaction" element={<ListTransaction />}></Route>
         </Route>
       </Routes>
     </BrowserRouter>
