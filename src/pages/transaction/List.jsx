@@ -1,33 +1,32 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../../components/ui/card";
-import { Button } from "../../../components/ui/button";
 import { Label } from "../../../components/ui/label";
-import { Input } from "../../../components/ui/input";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import AppModal from "../../components/AppModal";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import AppModal from "@/components/AppModal";
 import api from "@/services/api";
 
-
-// const dataUsers = [
-//     {
-//         id: 1,
-//         name: "Joko",
-//         email: "joko@gmail.com",
-//         password: 12345678
-//     },
-//     {
-//         id: 2,
-//         name: "Gibran",
-//         email: "gibran@gmail.com",
-//         password: 12345678
-//     },
-//     {
-//         id: 3,
-//         name: "Kaes",
-//         email: "kaes@gmail.com",
-//         password: 12345678
-//     },
-// ]
+// const datatransactions = [
+//   {
+//     id: 1,
+//     name: "Reza",
+//     email: "ribrahim50@gmail.com",
+//     password: 12345678,
+//   },
+//   {
+//     id: 2,
+//     name: "Budi",
+//     email: "budi@gmail.com",
+//     password: 12345678,
+//   },
+//   {
+//     id: 3,
+//     name: "ani",
+//     email: "ani@gmail.com",
+//     password: 12345678,
+//   },
+// ];
 
 const ListTransaction = () => {
     const _initForm = {
@@ -39,18 +38,19 @@ const ListTransaction = () => {
     };
 
     const [showModal, setShowModal] = useState(false);
-    const [users, setTransaction] = useState([]);
+    const [transactions, setTransactions] = useState([]);
     const [formData, setFormData] = useState(_initForm);
     const [isEdit, setIsEdit] = useState(false);
-    const [isDelete, setIsDelete] = useState(false);
     const fetchTransaction = async () => {
         try {
+            // get All transactions
             const response = await api.get("/transaction");
-            setTransaction(response.data);
+            setTransactions(response.data);
         } catch (error) {
             console.log(error.message);
         }
     };
+
     useEffect(() => {
         fetchTransaction();
     }, []);
@@ -61,27 +61,12 @@ const ListTransaction = () => {
         setIsEdit(false);
     };
 
-    const handleEditModal = (user) => {
+    const handleEditModal = (transaction) => {
+        console.log(transaction);
         setShowModal(true);
         setIsEdit(true);
-        setFormData(user);
+        setFormData(transaction);
     };
-
-    const handleDelete = async (id) => {
-        const isConfirm = window.confirm('Are you sure want to delete this data?')
-        if (isConfirm) {
-            await api.delete(`/user/${id}`);
-            fetchTransaction();
-        }
-    };
-
-    // const handleDelete = (id) => {
-    //     const isConfirm = window.confirm('Are you sure want to delete this data?')
-    //     if (!isConfirm) {
-    //         return;
-    //     }
-    //     setTransaction(users.filter((u) => u.id !== id));
-    // };
 
     const handleCloseModal = () => {
         setShowModal(false);
@@ -101,22 +86,21 @@ const ListTransaction = () => {
                 name: formData.name,
                 email: formData.email,
                 password: formData.password,
-                is_active: parseInt(formData.is_active)
-            }
+                is_active: parseInt(formData.is_active),
+            };
             if (isEdit) {
-                // UPDATE
+                // update data
                 await api.put(`/user/${formData.id}`, payload);
-                // setTransaction
-                //     (users.map((user) => (user.id === formData.id ? formData : user)));
-
+                // setTransactions(transactions.map((user) => (user.id === formData.id ? formData : user)));
             } else {
-                // INSERT
+                // insert data
                 await api.post("/user", payload);
                 // const newUser = {
-                //     ...formData,
-                //     id: Date.now(),
+                //   ...formData,
+                //   id: Date.now(),
                 // };
-                // setTransaction([...users, newUser]);
+
+                // setTransactions([...transactions, newUser]);
             }
             setFormData(_initForm);
         } catch (error) {
@@ -126,6 +110,18 @@ const ListTransaction = () => {
             fetchTransaction();
             setShowModal(false);
         }
+        // jika edit data
+    };
+
+    const handleDelete = async (id) => {
+        const confirmation = window.confirm("Are you sure want to delete this data?");
+        if (confirmation) {
+            // delete
+            await api.delete(`/user/${id}`);
+            fetchTransaction();
+            // setTransactions(transactions.filter((u) => u.id !== id));
+        }
+        // filter: transactions
     };
 
     return (
@@ -133,85 +129,100 @@ const ListTransaction = () => {
             <Card className="shadow-sm border-border p-6">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                     <div>
-                        <CardTitle className="text-xl font-bold">Data Transaksi</CardTitle>
+                        <CardTitle className="text-xl font-bold">Data Transaction</CardTitle>
                     </div>
-                    <Button onClick={handleOpenModal}>
-                        Create New Transaction
-                    </Button>
+                    <Button onClick={handleOpenModal}>Transaction</Button>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-0">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h4 className="mb-0 fw-bold">Data Transaction</h4>
+                        </div>
+                    </div>
                     <table className="w-full text-left text-sm">
                         <thead className="border-y bg-muted/30 text-xs uppercase text-muted-foreground">
                             <tr>
                                 <th className="px-6 py-3 font-medium">#</th>
-                                <th className="px-6 py-3 font-medium">Name</th>
-                                <th className="px-6 py-3 font-medium">Email</th>
-                                <th className="px-6 py-3 font-medium">Status</th>
+                                <th className="px-6 py-3 font-medium">Order Number</th>
+                                <th className="px-6 py-3 font-medium">Payment Method</th>
+                                <th className="px-6 py-3 font-medium">Products</th>
                                 <th className="px-6 py-3 font-medium">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
-                            {users.map((user, index) => (
-                                <tr key={index} className="hover:bg-muted/50 transition-colors">
-                                    <td className="px-4 py-6 whitespace-nowrap">{index + 1}</td>
-                                    <td>{user.order_number}</td>
-                                    <td>{user.payment_method}</td>
-                                    <td>
-                                        {user.items.map((item) => (
-                                            <ul>
-                                                <li>{item.name}</li>
-                                            </ul>
-                                        ))}
-                                    </td>
-                                    {/* <td className="px-6 whitespace-nowrap">
-                                        <span className={`border rounded-sm py-1 px-2 ${user.is_active === 1 ? "bg-green-600" : "bg-red-600"} text-white`}>{user.is_active === 1 ? "Active" : "Inactive"}</span>
-                                    </td> */}
-                                    <td className="px-4 py-6 whitespace-nowrap">
-                                        <Button variant="warning" size="sm" className="me-2 bg-blue-500 text-white rounded-sm" onClick={() => handleEditModal(user)}>Edit</Button>
-                                        <Button variant="destructive" size="sm" className="me-2 bg-red-500 text-white rounded-sm" onClick={() => handleDelete(user.id)}>Delete</Button>
+                            {transactions.length > 0 ? (
+                                transactions.map((transaction, index) => (
+                                    <tr key={index} className="hover:bg-muted/50 transition-colors">
+                                        <td className="px-4 py-6 whitespace-nowrap">{index + 1}</td>
+                                        <td>{transaction.order_number}</td>
+                                        <td>{transaction.payment_method === 1 ? "Gopay" : "Cash"}</td>
+                                        <td>
+                                            {transaction.items.map((item) => (
+                                                <ul>
+                                                    <li>{item.name}</li>
+                                                </ul>
+                                            ))}
+                                        </td>
+                                        {/* <td>
+                      <span className={`border rounded-sm p-2 ${user.is_active === 1 ? "bg-green-600" : "bg-red-600"}   text-white`}>{user.is_active === 1 ? "Active" : "In-Active"}</span>
+                    </td> */}
+                                        <td className="px-4 py-6 text-right whitespace-nowrap">
+                                            <Button onClick={() => handleEditModal(transaction)} size="sm" className="me-2 bg-green-600">
+                                                Edit
+                                            </Button>
+                                            <Button onClick={() => handleDelete(transaction.id)} variant="destructive" size="sm" className="me-2">
+                                                Delete
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={5} className="text-center py-4 text-muted">
+                                        Belum ada data user
                                     </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </CardContent>
             </Card>
 
             {/* <Modal show={showModal} onHide={handleCloseModal}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Create New User</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Name</Form.Label>
-                            <Form.Control type="text" name="name" placeholder="Enter your name" required value={formData.name} onChange={handleChange}></Form.Control>
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Email</Form.Label>
-                            <Form.Control type="email" name="email" placeholder="Enter your email" required value={formData.email} onChange={handleChange}></Form.Control>
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Password</Form.Label>
-                            <Form.Control type="password" name="password" placeholder="Enter your password" required value={formData.password} onChange={handleChange}></Form.Control>
-                        </Form.Group>
-                    </Form>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={handleCloseModal}>
-                        Close
-                    </Button>
-                    <Button type="submit" variant="primary" onClick={handleSubmit} >
-                        Save Changes
-                    </Button>
-                </Modal.Footer>
-            </Modal > */}
+        <Modal.Header closeButton>
+          <Modal.Title>Transaction</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Name</Form.Label>
+              <Form.Control type="text" name="name" placeholder="Enter your name" required value={formData.name} onChange={handleChange}></Form.Control>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Email</Form.Label>
+              <Form.Control value={formData.email} onChange={handleChange} type="email" name="email" placeholder="Enter your email" required></Form.Control>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Password</Form.Label>
+              <Form.Control value={formData.password} onChange={handleChange} type="password" name="password" placeholder="Enter your passwod" required></Form.Control>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>
+            Close
+          </Button>
+          <Button type="submit" variant="primary" onClick={handleSubmit}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal> */}
 
-            <AppModal show={showModal} onClose={handleCloseModal} title={isEdit ? "Edit User" : "Create New User"} onSubmit={handleSubmit} submitLabel={isEdit ? 'Save Change' : "Save"}>
+            <AppModal show={showModal} onClose={handleCloseModal} title={isEdit ? "Edit User" : "Transaction"} onSubmit={handleSubmit} submitLabel={isEdit ? "Save Change" : "Save"}>
                 <div className="space-y-4">
                     <div className="space-y-2">
                         <Label>Name</Label>
-                        <Input type="text" id="name" name="name" value={formData.name} onChange={handleChange} required placeholder="Enter your name" />
+                        <Input id="name" name="name" value={formData.name} onChange={handleChange} required placeholder="Enter your name" />
                     </div>
                     <div className="space-y-2">
                         <Label>Email</Label>
@@ -219,18 +230,12 @@ const ListTransaction = () => {
                     </div>
                     <div className="space-y-2">
                         <Label>Password</Label>
-                        <Input type="password" id="password" name="password" value={formData.password} onChange={handleChange} required={isEdit ? false : true} placeholder="Enter your password" />
+                        <Input type="password" name="password" value={formData.password} onChange={handleChange} required={isEdit ? false : true} placeholder="Enter your password" />
                     </div>
                     {isEdit ? (
                         <div className="space-y-2">
                             <Label>Activation</Label>
-                            <RadioGroup
-                                value={String(formData.is_active)}
-                                onValueChange={(val) =>
-                                    setFormData({ ...formData, is_active: parseInt(val) })
-                                }
-                                className="w-fit flex gap-4"
-                            >
+                            <RadioGroup value={String(formData.is_active)} onValueChange={(val) => setFormData({ ...formData, is_active: parseInt(val) })} className="w-fit flex gap-4">
                                 <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="1" id="active" />
                                     <Label htmlFor="active">Active</Label>
@@ -246,21 +251,29 @@ const ListTransaction = () => {
                     )}
                 </div>
                 {/* <Form>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Name</Form.Label>
-                        <Form.Control type="text" name="name" placeholder="Enter your name" required value={formData.name} onChange={handleChange}></Form.Control>
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control type="email" name="email" placeholder="Enter your email" required value={formData.email} onChange={handleChange}></Form.Control>
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                        <Form.Label>Password</Form.Label>
-                        <Form.Control type="password" name="password" placeholder="Enter your password" required value={formData.password} onChange={handleChange}></Form.Control>
-                    </Form.Group>
-                </Form> */}
-            </AppModal>
+          <Form.Group className="mb-3">
+            <Form.Label>Name</Form.Label>
+            <Form.Control type="text" name="name" placeholder="Enter your name" required value={formData.name} onChange={handleChange}></Form.Control>
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Email</Form.Label>
+            <Form.Control value={formData.email} onChange={handleChange} type="email" name="email" placeholder="Enter your email" required></Form.Control>
+          </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label>Password</Form.Label>
+            <Form.Control value={formData.password} onChange={handleChange} type="password" name="password" placeholder="Enter your passwod" required></Form.Control>
+          </Form.Group>
 
+          <Form.Group className="mb-3">
+            <Form.Label>Status</Form.Label>
+            <Form.Select name="status" value={formData.status} onChange={handleChange}>
+              <option value="">Select One</option>
+              <option value="Active">Publish</option>
+              <option value="In Active">Draft</option>
+            </Form.Select>
+          </Form.Group>
+        </Form> */}
+            </AppModal>
         </>
     );
 };

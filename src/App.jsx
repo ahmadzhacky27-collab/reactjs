@@ -11,9 +11,9 @@ import Login from "./pages/Login";
 import MainLayout from "./pages/MainLayout";
 import Dashboard from "./pages/Dashboard";
 import ListUser from "./pages/user/List";
-import ListCategory from "./pages/category/category";
-import ListProduct from "./pages/product/product";
-import ListTransaction from './pages/transaction/List';
+import CategoryPage from "./pages/category/List";
+import ProductPage from "./pages/product/List";
+import ListTransaction from "./pages/transaction/List";
 
 function App() {
   return (
@@ -24,8 +24,8 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />}></Route>
           <Route path="/user" element={<ListUser />}></Route>
-          <Route path="/category" element={<ListCategory />}></Route>
-          <Route path="/product" element={<ListProduct />}></Route>
+          <Route path="/category" element={<CategoryPage />}></Route>
+          <Route path="/product" element={<ProductPage />}></Route>
           <Route path="/transaction" element={<ListTransaction />}></Route>
         </Route>
       </Routes>
