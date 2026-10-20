@@ -1,11 +1,12 @@
-import { Home, FileArchive, Inbox, File, Search, Settings, User2, Users, ChevronUp, LogOut } from "lucide-react";
-
+import { Home, FileArchive, Inbox, File, Search, Settings, User2, Users, ChevronUp, LogOut, ShoppingBasket } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar";
 import { Dropdown } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
 // Menu navigasi utama
 const items = [
     { title: "Home", url: "#", icon: Home },
+    { title: "Order", url: "/transaction", icon: ShoppingBasket },
     { title: "Product", url: "/product", icon: FileArchive },
     { title: "Category", url: "/category", icon: File },
     { title: "User", url: "/user", icon: Users },
@@ -35,7 +36,7 @@ export function AppSidebar() {
                         <SidebarMenu>
                             {items.map((item) => (
                                 <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton tooltip={item.title} render={<a href={item.url} />}>
+                                    <SidebarMenuButton tooltip={item.title} render={<Link to={item.url} />}>
                                         <item.icon />
                                         <span>{item.title}</span>
                                     </SidebarMenuButton>

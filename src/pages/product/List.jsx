@@ -5,14 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import AppModal from "../../components/AppModal";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import api from "@/services/api";
 
 const ProductPage = () => {
@@ -168,7 +161,7 @@ const ProductPage = () => {
                     <td>
                       <span className={`border rounded-sm p-2 ${row.is_active === 1 ? "bg-green-600" : "bg-red-600"}   text-white`}>{row.is_active === 1 ? "Active" : "In-Active"}</span>
                     </td>
-                    <td className="px-4 py-6 text-right whitespace-nowrap">
+                    <td className="px-4 py-6 whitespace-nowrap">
                       <Button onClick={() => handleEditModal(row)} size="sm" className="me-2 bg-green-600">
                         Edit
                       </Button>
