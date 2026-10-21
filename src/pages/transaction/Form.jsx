@@ -4,9 +4,11 @@ import { Label } from "../../../components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useNavigate } from "react-router-dom";
 import api from "@/services/api";
 
 const FormTransaction = () => {
+    const navigate = useNavigate();
     const _initForm = {
         id: null,
         name: "",
@@ -16,8 +18,6 @@ const FormTransaction = () => {
     };
 
     const [products, setProducts] = useState([]);
-    const [formData, setFormData] = useState(_initForm);
-    const [isEdit, setIsEdit] = useState(false);
     const [cart, setCart] = useState([]);
     const [paymentMethod, setPaymentMethod] = useState("cash");
     const [cashAmount, setCashAmount] = useState("");
@@ -69,52 +69,49 @@ const FormTransaction = () => {
         });
     };
 
-    console.log("cart", cart);
+    const TAX_RATE = 0.1
+    const totalAmount = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
+    const tax = Math.round(totalAmount * TAX_RATE);
+    const total = totalAmount + tax;
+    const change = Number(cashAmount) - total;
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleCheckout = async () => {
         try {
+            setLoading(true);
             const payload = {
-                name: formData.name,
-                email: formData.email,
-                password: formData.password,
-                is_active: parseInt(formData.is_active),
+                order_number: Date.now(),
+                payment_method: paymentMethod === "cash" ? 2 : 1,
+                items: cart.map((item) => ({
+                    product_id: item.id,
+                    qty: item.qty,
+                    price: item.price
+                })),
+                subtotal: totalAmount,
+                pay: cashAmount,
+                tax: tax,
+                total: total,
             };
-            if (isEdit) {
-                // update data
-                await api.put(`/user/${formData.id}`, payload);
-                // setTransactions(transactions.map((user) => (user.id === formData.id ? formData : user)));
-            } else {
-                // insert data
-                await api.post("/user", payload);
-                // const newUser = {
-                //   ...formData,
-                //   id: Date.now(),
-                // };
 
-                // setTransactions([...transactions, newUser]);
+            const response = await api.post('/transaction', payload);
+            console.log(response);
+
+            if(!response.status){
+                alert(response.message || "Failed process transaction")
+                return;
             }
-            setFormData(_initForm);
-        } catch (error) {
-            const errMsg = error.message;
-            console.log(errMsg);
-        } finally {
-            fetchTransaction();
-            setShowModal(false);
-        }
-        // jika edit data
-    };
 
-    const handleDelete = async (id) => {
-        const confirmation = window.confirm("Are you sure want to delete this data?");
-        if (confirmation) {
-            // delete
-            await api.delete(`/user/${id}`);
-            fetchTransaction();
-            // setTransactions(transactions.filter((u) => u.id !== id));
+            if(paymentMethod === "qris" && response.payment_gateway?.redirect_url){
+                window.location.href = response.payment_gateway.redirect_url;
+                return;
+            }
+
+            navigate("/transaction/print");
+        } catch (error) {
+            console.log('error transaction order', error);
+        } finally {
+            setLoading(false);
         }
-        // filter: transactions
-    };
+    }
 
     return (
         <>
@@ -154,7 +151,7 @@ const FormTransaction = () => {
                                         <div className="pt-5 flex items-center justify-between text-sm">
                                             <div className="flex-1 pr-2">
                                                 <p className="font-medium text-xs">{item.name}</p>
-                                                <p className="text-[11px] text-muted-foreground">{Number(item.price).toLocaleString('id-ID')}</p>
+                                                <p className="text-[11px] text-muted-foreground">{Number(item.price).toLocaleString("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 })}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1.5">
@@ -192,17 +189,25 @@ const FormTransaction = () => {
                             )}
                             <div className="space-y-1.5 pt-3 border-t text-xs">
                                 <div className="flex justify-between font-semibold text-sm">
+                                    <span>Subtotal</span>
+                                    <span>{Number(totalAmount).toLocaleString("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 })}</span>
+                                </div>
+                                <div className="flex justify-between font-semibold text-sm">
+                                    <span>Tax (10%)</span>
+                                    <span>{Number(tax).toLocaleString("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 })}</span>
+                                </div>
+                                <div className="flex justify-between font-semibold text-sm">
                                     <span>Total</span>
-                                    <span>Rp. 100.000</span>
+                                    <span>{Number(total).toLocaleString("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 })}</span>
                                 </div>
                             </div>
                             <div className="flex justify-between text-muted-foreground">
                                 <span>Change</span>
-                                <span>Rp. 90.000</span>
+                                <span>{Number(change).toLocaleString("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 })}</span>
                             </div>
                         </CardContent>
                         <CardFooter className="p-4 border-t">
-                            <Button className="w-full text-xs font-semibold">
+                            <Button onClick={handleCheckout} className="w-full text-xs font-semibold">
                                 {loading ? "Loading..." : "Save Transaction"}
                             </Button>
                         </CardFooter>
@@ -214,5 +219,7 @@ const FormTransaction = () => {
         </>
     );
 };
+
+
 
 export default FormTransaction;
