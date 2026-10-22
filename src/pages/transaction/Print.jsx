@@ -12,8 +12,27 @@ const PrintTransaction = () => {
     const orderId = searchParam.get("order_id");
     const status = searchParam.get("transaction_status");
 
-    const [orders, setOrders] = useState([]);
+    const [order, setOrder] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchTransaction = async () => {
+            if (!orderId) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                const res = await api.get(`/transaction/${orderId}`);
+                setOrder(res.data);
+            } catch (error) {
+                console.log("Fail fetch data transaction", error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchTransaction();
+    }, [orderId]);
 
     const handlePrint = () => {
         window.print();
@@ -47,34 +66,48 @@ const PrintTransaction = () => {
                     <div className="space-y-0.5 text-[11px]">
                         <div className="flex justify-between items-center">
                             <span>Payment Method</span>
-                            <span className="uppercase">Qris</span>
+                            <span className="uppercase">{order.payment_method}</span>
                         </div>
                     </div>
                     <div className="border t border-dashed border-zinc-400 pt-2 space-y-2">
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <div className="font-semibold">Mi Sedap</div>
-                                <div className="text-[10px] text-zinc-600">
-                                    1 x Rp. 100.000
+                        {order?.items?.length > 0 ? (
+                            order.items.map((item, index) => (
+                                <div key={index} className="flex justify-between items-center">
+                                    <div>
+                                        <div className="font-semibold">{item.name}</div>
+                                        <div className="text-[10px] text-zinc-600">{item.qty} x {item.price.toLocaleString('id-ID')}</div>
+                                    </div>
+                                    <div className="font-medium">Rp. {(item.qty * item.price).toLocaleString('id-ID')}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <span>Total Payment</span>
+                                    <span>Rp. 100.000</span>
                                 </div>
                             </div>
-                            <div className="font-medium">
-                                Rp. 100.000
-                            </div>
-                        </div>
+                        )}
                         <div className="border-t border-dashed border-zinc-400 pt-2 space-y-1">
-                            <div className="flex justify-between">
-                                <span>Subtotal</span>
-                                <span>Rp. 100.000</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Tax (10%)</span>
-                                <span>Rp. 10.000</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Total</span>
-                                <span>Rp. 110.000</span>
-                            </div>
+                            {order?.subtotal && (
+                                <div className="flex justify-between">
+                                    <span>Subtotal</span>
+                                    <span>Rp. {order.subtotal.toLocaleString('id-ID')}</span>
+                                </div>
+                            )}
+                            {order?.tax && (
+                                <div className="flex justify-between">
+                                    <span>Tax (10%)</span>
+                                    <span>Rp. {order.tax.toLocaleString('id-ID')}</span>
+                                </div>
+                            )}
+                            {order?.total && (
+                                <div className="flex justify-between">
+                                    <span>Total</span>
+                                    <span>Rp. {order.total.toLocaleString('id-ID')}</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                     <div className="border-t border-dashed border-zinc-400 pt-2 space-y-1">
